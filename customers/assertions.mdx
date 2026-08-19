@@ -1,0 +1,105 @@
+---
+title: "Assertions"
+description: "Every matcher, plus timing and header assertions."
+icon: "circle-check"
+groups: ["customer"]
+---
+
+An `expect` block can assert on status, headers, body, and timing in any
+combination. Every key must pass for the test to pass.
+
+## Status
+
+```yaml
+expect:
+  status: 201
+```
+
+Ranges are supported with `lt` / `gt`:
+
+```yaml
+expect:
+  status:
+    gt: 199
+    lt: 300
+```
+
+## Headers
+
+```yaml
+expect:
+  headers:
+    content-type: "application/json"
+    x-request-id:
+      exists: true
+```
+
+Header names are matched case-insensitively.
+
+## Body
+
+Body assertions walk the response with dot notation, including into arrays
+by index.
+
+```yaml
+expect:
+  body:
+    id:
+      matches: "^ord_"
+    total: 8400
+    items.0.sku: "abc-123"
+```
+
+## Timing
+
+<ResponseField name="duration_ms" type="object">
+  Wall-clock time for the request, in milliseconds.
+
+  ```yaml
+  expect:
+    duration_ms:
+      lt: 500
+  ```
+</ResponseField>
+
+## Matchers reference
+
+<ResponseField name="equals" type="any">
+  Exact match. This is the default when you pass a bare value instead of a
+  matcher object.
+</ResponseField>
+
+<ResponseField name="matches" type="string">
+  Regular expression, for values that vary between runs — IDs, timestamps,
+  tokens.
+</ResponseField>
+
+<ResponseField name="lt / gt / lte / gte" type="number">
+  Numeric comparison.
+</ResponseField>
+
+<ResponseField name="exists" type="boolean">
+  Asserts presence (or absence, with `false`) without pinning the value.
+</ResponseField>
+
+<ResponseField name="oneOf" type="array">
+  Passes if the value matches any entry in the list.
+
+  ```yaml
+  expect:
+    body:
+      status:
+        oneOf: ["pending", "processing"]
+  ```
+</ResponseField>
+
+<Tip>
+  Matchers compose. `expect.body.total.gt` and `expect.body.total.lt` in the
+  same block both need to pass.
+</Tip>
+
+## Next steps
+
+<Card title="Query console" icon="database" href="/customers/query-console">
+  Assert on what actually landed in your database, not just the response.
+</Card>

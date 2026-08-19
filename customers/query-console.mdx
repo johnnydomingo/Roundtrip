@@ -1,0 +1,82 @@
+---
+title: "Query console"
+description: "Connecting a database and writing query assertions."
+icon: "database"
+groups: ["customer"]
+---
+
+A `201` means your API said the row was created. The query console checks
+that it actually exists, in the same test run.
+
+## Connect a database
+
+<Steps>
+  <Step title="Open the console">
+    From the dashboard, go to **Query console → Connections → New**.
+  </Step>
+
+  <Step title="Add credentials">
+    Roundtrip supports Postgres, MySQL, and read-replica connection strings.
+    Credentials are encrypted at rest and never appear in run logs.
+  </Step>
+
+  <Step title="Name the connection">
+    The name you give it is what you reference from `roundtrip.yaml` and from
+    test files — for example `orders-primary`.
+  </Step>
+</Steps>
+
+<Note>
+  Roundtrip connects with a read-only role by convention. Grant `SELECT` only,
+  even though the console doesn't enforce it for you.
+</Note>
+
+## Write a query assertion
+
+```yaml
+query:
+  connection: orders-primary
+  sql: "SELECT status, total FROM orders WHERE id = '{{ steps.create_order.body.id }}'"
+expect:
+  rows: 1
+  first.status: "pending"
+  first.total: 8400
+```
+
+<ResponseField name="connection" type="string" required>
+  Name of a connection configured in the query console.
+</ResponseField>
+
+<ResponseField name="sql" type="string" required>
+  Any read query. Supports the same `{{ steps.* }}` and `{{ env.* }}`
+  interpolation as request bodies.
+</ResponseField>
+
+<ResponseField name="expect.rows" type="number">
+  Exact row count the query must return.
+</ResponseField>
+
+<ResponseField name="expect.first" type="object">
+  Column assertions against the first returned row, using the same matchers
+  as [body assertions](/customers/assertions).
+</ResponseField>
+
+## Standalone queries
+
+Queries don't need a preceding request. Use them to assert on seed data or
+state left over from a previous step:
+
+```yaml
+query:
+  connection: orders-primary
+  sql: "SELECT count(*) as n FROM orders WHERE status = 'pending'"
+expect:
+  first.n:
+    lt: 100
+```
+
+## Next steps
+
+<Card title="Limits" icon="gauge" href="/customers/limits">
+  Query timeouts, row caps, and connections per workspace.
+</Card>

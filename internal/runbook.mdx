@@ -1,0 +1,60 @@
+---
+title: "Support runbook"
+description: "How to triage and respond to customer support requests."
+icon: "life-ring"
+groups: ["internal"]
+---
+
+<Warning>
+  This tab is internal. Nothing on this page should be linked to from
+  customer-facing docs.
+</Warning>
+
+## Triage
+
+<Steps>
+  <Step title="Check status first">
+    Before responding to any report of failed runs or unreachable
+    connections, check [status.roundtrip.dev](https://status.roundtrip.dev)
+    for an active incident.
+  </Step>
+
+  <Step title="Classify the request">
+    Most requests fall into one of three buckets: billing, a bug in a test
+    run, or a question about assertion or query syntax.
+  </Step>
+
+  <Step title="Route or resolve">
+    Syntax questions can usually be answered directly from
+    [Assertions](/customers/assertions) and [Query console](/customers/query-console).
+    Suspected bugs and billing disputes go to the on-call engineer.
+  </Step>
+</Steps>
+
+## Common issues
+
+<AccordionGroup>
+  <Accordion title="Customer reports queries timing out that used to work">
+    Ask for the connection name and check whether the underlying database's
+    read replica lag has increased. The 10 second query timeout (see
+    [Limits](/customers/limits)) doesn't change, but replica lag can make
+    previously-fast queries cross it.
+  </Accordion>
+
+  <Accordion title="Customer was double-charged">
+    Check **Settings → Billing** on their workspace for a plan change
+    mid-cycle — this is the most common cause of an extra prorated line item,
+    not an actual double charge. Escalate to finance if the invoice truly has
+    a duplicate entry.
+  </Accordion>
+
+  <Accordion title="CLI login loop">
+    Usually a stale token in `~/.roundtrip/credentials` on the customer's
+    machine. Have them run `roundtrip logout` before `roundtrip login` again.
+  </Accordion>
+</AccordionGroup>
+
+## Escalation
+
+If an issue affects more than one workspace, post in the incident channel
+before continuing triage — don't work a suspected outage as a one-off ticket.

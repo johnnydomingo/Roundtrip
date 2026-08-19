@@ -1,0 +1,63 @@
+---
+title: "Billing"
+description: "Plans, invoices, and how usage is metered."
+icon: "receipt"
+---
+
+Roundtrip is billed per workspace, based on the plan you choose and the number
+of seats attached to it.
+
+## Plans
+
+<CardGroup cols={2}>
+  <Card title="Free" icon="rocket">
+    Local runs only. No query console, no shared workspaces.
+  </Card>
+  <Card title="Team" icon="circle-user">
+    Shared workspaces, the query console, and CI reporters. Billed monthly per seat.
+  </Card>
+</CardGroup>
+
+<Note>
+  Upgrading or downgrading takes effect immediately. You're charged a prorated
+  amount for the rest of the current billing cycle.
+</Note>
+
+## Usage metering
+
+Two things count against your plan's limits: test runs and query console
+queries. Both reset at the start of each billing cycle.
+
+<ResponseField name="test runs" type="count">
+  Every invocation of `roundtrip run`, regardless of how many test files it
+  includes, counts as one run.
+</ResponseField>
+
+<ResponseField name="queries" type="count">
+  Each `query` block executed against a connected database counts as one
+  query, whether it runs standalone or as part of a test.
+</ResponseField>
+
+See exact thresholds on the [limits](/customers/limits) page.
+
+## Invoices
+
+Invoices are generated on the first of each month and sent to the workspace's
+billing contact. Past invoices are available from the dashboard under
+**Settings → Billing**.
+
+<Card title="Manage billing" icon="credit-card" href="https://app.mintlify.com">
+  Update your plan, seats, or payment method.
+</Card>
+
+## Questions
+
+<Accordion title="Can I switch from monthly to annual billing?">
+  Yes, from **Settings → Billing**. Annual plans are billed upfront and prorate
+  any remaining monthly balance.
+</Accordion>
+
+<Accordion title="What happens if I exceed my plan's limits?">
+  Test runs and queries still execute, but you'll be prompted to upgrade
+  before your next cycle starts. We don't cut off traffic mid-cycle.
+</Accordion>

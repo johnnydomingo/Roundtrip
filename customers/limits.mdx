@@ -1,0 +1,50 @@
+---
+title: "Limits"
+description: "Query timeouts, row caps, and connections per workspace."
+icon: "gauge"
+groups: ["customer"]
+---
+
+Limits apply per workspace and exist to keep the query console safe to point
+at a production database.
+
+## Query console
+
+<ResponseField name="Query timeout" type="10 seconds">
+  A query that hasn't returned within 10 seconds is cancelled and the test
+  fails with a timeout error.
+</ResponseField>
+
+<ResponseField name="Row cap" type="1,000 rows">
+  Only the first 1,000 rows are pulled back for assertions, even if the query
+  matches more. Use `LIMIT` in your SQL to be explicit.
+</ResponseField>
+
+<ResponseField name="Connections per workspace" type="10">
+  Team plan workspaces can register up to 10 database connections. Contact
+  support if you need more.
+</ResponseField>
+
+<Warning>
+  Roundtrip does not enforce read-only access. Use a database role scoped to
+  `SELECT` when you create the connection — a query assertion that writes will
+  execute.
+</Warning>
+
+## Test runs
+
+<ResponseField name="Concurrent requests" type="20">
+  Steps within a single test file run sequentially, but separate test files in
+  the same `roundtrip run` invocation execute up to 20 at a time.
+</ResponseField>
+
+<ResponseField name="Request timeout" type="30 seconds">
+  Applies per HTTP request, independent of the `duration_ms` assertion in your
+  test.
+</ResponseField>
+
+## Plan limits
+
+Test run and query counts reset each billing cycle. See current thresholds
+for your plan under **Settings → Billing**, or read more on the
+[billing](/billing) page.

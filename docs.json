@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "almond",
+  "theme": "aspen",
   "name": "Roundtrip",
   "colors": {
     "primary": "#3B82F6",
@@ -27,6 +27,11 @@
           "icon": "rocket",
           "public": true,
           "pages": ["index", "quickstart", "workspaces"]
+        },
+        {
+          "group": "Billing",
+          "icon": "receipt",
+          "pages": ["billing"]
         }
       ]
     },
@@ -78,13 +83,7 @@
   "contextual": {
     "options": [
       "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
+      "view"
     ]
   },
   "footer": {
