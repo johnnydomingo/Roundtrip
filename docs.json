@@ -26,12 +26,12 @@
           "group": "Get started",
           "icon": "rocket",
           "public": true,
-          "pages": ["index", "quickstart", "workspaces"]
+          "pages": ["index", "quickstart"]
         },
         {
-          "group": "Billing",
+          "group": "Account",
           "icon": "receipt",
-          "pages": ["billing"]
+          "pages": ["account/workspaces", "account/billing"]
         }
       ]
     },
