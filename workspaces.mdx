@@ -3,3 +3,90 @@ title: "Workspaces"
 description: "How projects, environments, and keys fit together."
 icon: "folder"
 ---
+
+A workspace is the top-level container for your team's work in Roundtrip. Every
+project, environment, and API key lives inside one, and billing is metered per
+workspace.
+
+## Projects
+
+A project is what `roundtrip init` creates: one `roundtrip.yaml` file plus a
+`tests/` directory. Most teams create a project per repository or per service —
+for example, `checkout-api` and `notifications-worker` as separate projects in
+the same workspace.
+
+```yaml roundtrip.yaml
+project: checkout-api
+
+environments:
+  local:
+    base_url: http://localhost:8080
+  staging:
+    base_url: https://staging.api.example.com
+
+default_environment: local
+```
+
+<Tip>
+  The `project` field is what groups test runs together in the dashboard.
+  Keep it stable — renaming it starts a new run history.
+</Tip>
+
+## Environments
+
+Environments point the same test suite at different targets. Switch between
+them with `--env`:
+
+```bash
+roundtrip run --env staging
+```
+
+<ResponseField name="base_url" type="string" required>
+  Root URL that request paths in your tests are resolved against.
+</ResponseField>
+
+<ResponseField name="headers" type="object">
+  Headers sent with every request in that environment, useful for
+  environment-scoped auth like a staging bearer token.
+</ResponseField>
+
+<Note>
+  Environments don't have their own permissions. Anyone with access to the
+  project can run against any environment defined in `roundtrip.yaml`,
+  including staging or production. Scope credentials accordingly.
+</Note>
+
+## API keys
+
+Keys authenticate the CLI outside of an interactive `roundtrip login` — CI
+runners, cron jobs, anywhere a browser isn't available.
+
+<Steps>
+  <Step title="Generate a key">
+    From the workspace, go to **Settings → API keys → New key**.
+  </Step>
+  <Step title="Store it as a secret">
+    Add it to your CI provider's secret store as `ROUNDTRIP_TOKEN`. Roundtrip
+    reads it automatically; you don't need to reference it in
+    `roundtrip.yaml`.
+  </Step>
+  <Step title="Scope it">
+    Keys can be scoped to a single project or to the whole workspace. Prefer
+    project-scoped keys for CI so a leaked key doesn't expose every project.
+  </Step>
+</Steps>
+
+<Warning>
+  Revoking a key takes effect immediately and breaks any pipeline still using
+  it. Rotate by adding the new key to CI before revoking the old one.
+</Warning>
+
+## Members and seats
+
+Everyone added to a workspace can see every project in it — Roundtrip doesn't
+have per-project permissions. Seats are billed per member; see
+[billing](/billing) for how that's metered.
+
+<Card title="Billing" icon="receipt" href="/billing">
+  Plans, seats, and how usage is metered.
+</Card>
