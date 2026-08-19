@@ -1,47 +1,245 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Write and run your first endpoint test in under five minutes."
+icon: "rocket"
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+Roundtrip runs tests against your live endpoints and then checks that your
+database agrees. This guide covers the first half — install the CLI, write a
+test, and run it locally.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+<Note>
+  You need Node.js 20 or later and an HTTP endpoint you can reach. A public
+  sandbox API works fine if you don't have one handy.
+</Note>
 
-## Prerequisites
+## Install the CLI
 
-Before you begin, you must have:
+<CodeGroup>
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+```bash npm
+npm install -g @roundtrip/cli
+```
 
-## Get started
+```bash pnpm
+pnpm add -g @roundtrip/cli
+```
+
+```bash Homebrew
+brew install roundtrip/tap/roundtrip
+```
+
+</CodeGroup>
+
+Verify the install:
+
+```bash
+roundtrip --version
+```
+
+## Set up a project
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
-
+  <Step title="Authenticate">
     ```bash
-    npm install your-package
+    roundtrip login
+    ```
+
+    This opens your browser and writes a token to `~/.roundtrip/credentials`.
+    In CI, set `ROUNDTRIP_TOKEN` instead.
+  </Step>
+
+  <Step title="Initialize">
+    ```bash
+    roundtrip init
+    ```
+
+    Creates a `roundtrip.yaml` at the project root and an empty `tests/`
+    directory.
+
+    ```yaml roundtrip.yaml
+    project: checkout-api
+
+    environments:
+      local:
+        base_url: http://localhost:8080
+      staging:
+        base_url: https://staging.api.example.com
+        headers:
+          Authorization: "Bearer {{ env.STAGING_TOKEN }}"
+
+    default_environment: local
+    ```
+
+    <Tip>
+      Never commit real tokens. Anything in `{{ env.* }}` is read from the
+      environment at run time.
+    </Tip>
+  </Step>
+
+  <Step title="Write a test">
+    Create `tests/create-order.yaml`:
+
+    ```yaml tests/create-order.yaml
+    name: Create an order
+    request:
+      method: POST
+      path: /v1/orders
+      headers:
+        Content-Type: application/json
+      body:
+        sku: "abc-123"
+        qty: 2
+    expect:
+      status: 201
+      duration_ms:
+        lt: 500
+      body:
+        id:
+          matches: "^ord_"
+        total: 8400
+        status: "pending"
     ```
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
   <Step title="Run it">
-    Show the first thing a user does to see it working.
-
     ```bash
-    your-cli start
+    roundtrip run tests/create-order.yaml
+    ```
+
+    ```text Output
+    checkout-api · local
+
+      ✓ Create an order                                   142ms
+        ✓ status is 201
+        ✓ duration under 500ms
+        ✓ body.id matches ^ord_
+        ✓ body.total equals 8400
+        ✓ body.status equals "pending"
+
+    1 passed · 0 failed · 0 skipped                    total 0.4s
     ```
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Check>
+  That's a passing endpoint test. Run the whole suite with `roundtrip run` and
+  no arguments.
+</Check>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## Anatomy of a test
+
+Every test file has the same three sections.
+
+<ResponseField name="name" type="string" required>
+  What shows up in output and in CI logs. Keep it human.
+</ResponseField>
+
+<ResponseField name="request" type="object" required>
+  Method, path, headers, and body. Paths are relative to the environment's
+  `base_url`.
+</ResponseField>
+
+<ResponseField name="expect" type="object" required>
+  Assertions against the response. Every key must pass for the test to pass.
+
+  <Expandable title="matchers">
+    <ResponseField name="equals" type="any">
+      Exact match. This is the default when you pass a bare value.
+    </ResponseField>
+    <ResponseField name="matches" type="string">
+      Regular expression, for values that vary between runs.
+    </ResponseField>
+    <ResponseField name="lt / gt" type="number">
+      Numeric comparison. Most often used on `duration_ms`.
+    </ResponseField>
+    <ResponseField name="exists" type="boolean">
+      Asserts presence without pinning the value.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Chain requests
+
+Reference an earlier step's response with `{{ steps.<name>.* }}`:
+
+```yaml
+steps:
+  - name: login
+    request:
+      method: POST
+      path: /v1/sessions
+      body: { email: "{{ env.TEST_EMAIL }}", password: "{{ env.TEST_PASSWORD }}" }
+    expect:
+      status: 200
+
+  - name: create_order
+    request:
+      method: POST
+      path: /v1/orders
+      headers:
+        Authorization: "Bearer {{ steps.login.body.token }}"
+      body: { sku: "abc-123", qty: 2 }
+    expect:
+      status: 201
+```
+
+## Run against another environment
+
+```bash
+roundtrip run --env staging
+```
+
+Add `--reporter junit` to emit a report your CI can consume, and `--bail` to
+stop on the first failure.
+
+## The other half
+
+A `201` means your API said the order was created. It doesn't prove the row
+exists. Roundtrip can query your database in the same run and assert on what it
+finds:
+
+```yaml
+query:
+  connection: orders-primary
+  sql: "SELECT status FROM orders WHERE id = '{{ steps.create_order.body.id }}'"
+expect:
+  rows: 1
+  first.status: "pending"
+```
+
+<Card title="Query console" icon="database" href="/customers/query-console">
+  Connecting a database and writing query assertions. Included with any
+  Roundtrip subscription.
+</Card>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="ECONNREFUSED on the local environment">
+    The CLI resolves `base_url` from your machine, not from a container. If
+    your API runs in Docker, use the published host port rather than the
+    service name.
+  </Accordion>
+
+  <Accordion title="Assertion fails but the value looks right">
+    Compare types, not just appearance. `total: 8400` fails against a string
+    `"8400"`. Use `matches` when a field is stringified upstream.
+  </Accordion>
+
+  <Accordion title="Tests pass locally and fail in CI">
+    Almost always a missing environment variable. Run
+    `roundtrip run --print-env` to list every variable a suite references.
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Assertions" icon="circle-check" href="/customers/assertions">
+    Every matcher, plus timing and header assertions.
+  </Card>
+  <Card title="Your account" icon="key" href="/account">
+    API keys, seats, and billing.
+  </Card>
+</CardGroup>
