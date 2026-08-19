@@ -1,55 +1,68 @@
-# Mintlify Starter Kit
+# Roundtrip docs
 
-Use the starter kit to get your docs deployed and ready to customize.
+Docs site for Roundtrip, an endpoint-testing CLI that also verifies what
+actually landed in your database. Built on [Mintlify](https://mintlify.com).
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## Access model
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+Every page falls into one of three tiers. Which tier a page is in is decided
+by two things working together: the page's own frontmatter, and the
+navigation group it's listed under in [docs.json](docs.json).
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+| Tier | Who sees it | How it's set | Where it lives |
+|---|---|---|---|
+| Public | Signed-out visitors | `public: true` in page frontmatter, or `"public": true` on its navigation group | root — [index.mdx](index.mdx), [quickstart.mdx](quickstart.mdx) |
+| Logged in | Any authenticated user | No `public` or `groups` field at all (this is the default) | [account/](account/) |
+| Group-gated | Authenticated users in a specific group | `groups: ["name"]` in page frontmatter | [customers/](customers/) → `customer`, [internal/](internal/) → `internal` |
 
-## AI-assisted writing
+**Group-level `public` overrides page frontmatter.** If a page is listed
+under a navigation group with `"public": true`, it's public — even if that
+page's own frontmatter has no `public` field and even if it has a `groups`
+field. Keep gated pages out of public groups; when in doubt, gate at the page
+level with frontmatter rather than the group level, since a page-level
+`groups` field can't be silently overridden by a config change elsewhere.
 
-Set up your AI coding tool to work with Mintlify:
+## Folder structure
+
+Folders mirror access tier, not topic, so you can tell what a page's
+audience is without opening it:
+
+```
+index.mdx, quickstart.mdx   public
+account/                    logged in, no group required
+customers/                  "customer" group
+internal/                   "internal" group
+```
+
+When adding a page, put it in the folder for its intended audience first,
+then set matching frontmatter (or add it to the matching group in
+`docs.json`). New pages don't appear in the sidebar automatically — they
+must be added to a `pages` array in `docs.json`.
+
+## Preview commands
+
+Install the CLI once:
 
 ```bash
-npx skills add https://mintlify.com/docs
-```
-
-This command installs Mintlify's documentation skill for your configured AI tools like Claude Code, Cursor, Windsurf, and others. The skill includes component reference, writing standards, and workflow guidance.
-
-See the [AI tools guides](/ai-tools) for tool-specific setup.
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
-
-```
 npm i -g mint
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
-
-```
+```bash
 mint dev
 ```
 
-View your local preview at `http://localhost:3000`.
+Local preview at `localhost:3000`. This does not enforce production
+authentication, so use `--groups` to mock membership and check how a gated
+tier will actually render before publishing:
 
-## Publishing changes
+```bash
+mint dev --groups customer
+mint dev --groups internal
+```
 
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
+Before pushing, also run:
 
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+```bash
+mint broken-links   # catch dead internal links, e.g. after moving a page
+mint validate        # validate docs.json and the build
+```

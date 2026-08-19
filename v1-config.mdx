@@ -1,0 +1,64 @@
+---
+title: "Legacy configuration reference (v1)"
+description: "The roundtrip.yaml schema used before CLI v2. Kept for reference."
+public: true
+hidden: true
+---
+
+<Warning>
+  CLI v1 reached end of support on 1 March 2026. This page exists so that older
+  links and error messages still resolve. New projects should follow
+  [Workspaces and API keys](/workspaces).
+</Warning>
+
+The v1 schema used a flat structure with a single target host. Environments,
+header inheritance, and variable interpolation all arrived in v2.
+
+```yaml roundtrip.yaml (v1)
+host: https://staging.api.example.com
+token: rt_live_xxxxxxxxxxxx
+timeout: 30
+tests: ./tests
+```
+
+## What changed in v2
+
+| v1 | v2 |
+| --- | --- |
+| `host` | `environments.<name>.base_url` |
+| `token` inline | `{{ env.* }}` interpolation |
+| `timeout` (seconds) | `duration_ms` assertions per test |
+| `tests` | `tests/` by convention, no config needed |
+
+## Migrating
+
+<Steps>
+  <Step title="Move the host into an environment">
+    ```yaml
+    environments:
+      staging:
+        base_url: https://staging.api.example.com
+    ```
+  </Step>
+  <Step title="Remove inline tokens">
+    Replace the `token` field with a header that reads from the environment:
+
+    ```yaml
+    headers:
+      Authorization: "Bearer {{ env.STAGING_TOKEN }}"
+    ```
+  </Step>
+  <Step title="Run the migration check">
+    ```bash
+    roundtrip migrate --check
+    ```
+
+    Reports every v1 field still present without modifying files.
+  </Step>
+</Steps>
+
+## Why this page is not in the sidebar
+
+It is kept for inbound links only. Surfacing a deprecated schema alongside
+current documentation causes more confusion than it resolves, so it is removed
+from navigation while remaining reachable at its URL.
