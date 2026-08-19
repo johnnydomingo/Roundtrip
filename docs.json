@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "almond",
   "name": "Roundtrip",
   "colors": {
     "primary": "#3B82F6",
@@ -9,32 +9,55 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+  "global": {
+    "anchors": [
       {
-        "tab": "Welcome",
-        "groups": [
-          { "group": "Get started",
-          "public": true,
-          "pages": ["index", "quickstart"]
-          }
-        ]
+        "anchor": "Status",
+        "icon": "signal",
+        "href": "https://status.roundtrip.dev"
       }
-    ],
-    "global": {
-      "anchors": [
+    ]
+  },
+  "tabs": [
+    {
+      "tab": "Documentation",
+      "groups": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "group": "Get started",
+          "icon": "rocket",
+          "public": true,
+          "pages": ["index", "quickstart", "workspaces"]
+        }
+      ]
+    },
+    {
+      "tab": "Subscribers",
+      "icon": "circle-user",
+      "menu": [
+        {
+          "item": "Endpoint testing",
+          "icon": "circle-check",
+          "pages": ["customers/assertions"]
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "item": "Query console",
+          "icon": "database",
+          "pages": ["customers/query-console", "customers/limits"]
+        }
+      ]
+    },
+    {
+      "tab": "Internal",
+      "icon": "lock",
+      "groups": [
+        {
+          "group": "Support",
+          "pages": ["internal/runbook"]
         }
       ]
     }
-  },
+  ]
+},
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
